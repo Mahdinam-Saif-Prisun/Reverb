@@ -12,3 +12,5 @@
   8. Song collaboration
   9. User listening history
   10. Artist following system
+
+### Stack: MySQL, Node.js, Express.js, React.js
