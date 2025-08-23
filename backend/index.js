@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import pool from './db.js';
 import usersRouter from './routes/users.js';
+import artistRoutes from "./routes/artists.js";
 
 
 dotenv.config();
@@ -9,8 +10,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+//app.use
 app.use(express.json());
 app.use('/users', usersRouter);
+app.use("/artists", artistRoutes);
+
 
 app.get('/test', async (req, res) => {
   try {
