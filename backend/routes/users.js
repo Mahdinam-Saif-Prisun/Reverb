@@ -47,6 +47,23 @@ router.get("/", async (req, res) => {
   }
 });
 
+// ---- GET SINGLE USER ----
+router.get("/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [rows] = await pool.query("SELECT * FROM User WHERE User_ID = ?", [userId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
+});
+
 // POST a new user
 router.post('/', async (req, res) => {
   const { Name, Email, Pass_hash, Subscription_type, Role } = req.body;
@@ -68,6 +85,45 @@ router.post('/', async (req, res) => {
     } else {
       res.status(500).json({ error: 'Failed to add user' });
     }
+  }
+});
+
+// ---- UPDATE USER ----
+router.put("/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { Name, Email, Pass_hash, Subscription_type, Role } = req.body;
+
+    const [result] = await pool.query(
+      `UPDATE User SET Name=?, Email=?, Pass_hash=?, Subscription_type=?, Role=? WHERE User_ID=?`,
+      [Name, Email, Pass_hash, Subscription_type, Role, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User updated" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
+});
+
+// ---- DELETE USER ----
+router.delete("/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [result] = await pool.query("DELETE FROM User WHERE User_ID = ?", [userId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
   }
 });
 
