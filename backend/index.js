@@ -5,6 +5,7 @@ import usersRouter from './routes/users.js';
 import artistRoutes from "./routes/artists.js";
 import albumRoutes from "./routes/albums.js";
 import songRoutes from "./routes/songs.js";
+import playlistsRouter from "./routes/playlists.js";
 
 
 dotenv.config();
@@ -12,12 +13,14 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-//Routes
 app.use(express.json());
+
+//Routes
 app.use('/users', usersRouter);
 app.use("/artists", artistRoutes);
 app.use("/albums", albumRoutes);
 app.use("/songs", songRoutes);
+app.use("/playlists", playlistsRouter);
 
 
 app.get('/test', async (req, res) => {
