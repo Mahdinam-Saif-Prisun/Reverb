@@ -50,6 +50,9 @@ app.use("/playlist-compile", playlistCompileRouter);
 import queueContentsRouter from "./routes/queueContents.js";
 app.use("/queue-contents", queueContentsRouter);
 
+import historyContentsRouter from "./routes/historyContents.js";
+app.use("/history-contents", historyContentsRouter);
+
 
 
 //Routes ^
