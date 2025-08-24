@@ -47,6 +47,10 @@ app.use("/rate", rateRouter);
 import playlistCompileRouter from "./routes/playlistCompile.js";
 app.use("/playlist-compile", playlistCompileRouter);
 
+import queueContentsRouter from "./routes/queueContents.js";
+app.use("/queue-contents", queueContentsRouter);
+
+
 
 //Routes ^
 
