@@ -1,15 +1,15 @@
 import express from "express";
-import pool from "../db.js"; // your mysql pool
+import pool from "../db.js";
 
 const router = express.Router();
 
 // CREATE Artist
 router.post("/", async (req, res) => {
     try {
-        const { Name, Country, Bio } = req.body;
+        const { Name, Pass_hash, Country, Bio } = req.body;
         const [result] = await pool.query(
-            "INSERT INTO Artist (Name, Country, Bio) VALUES (?, ?, ?)",
-            [Name, Country, Bio]
+            "INSERT INTO Artist (Name, Pass_hash, Country, Bio) VALUES (?, ?, ?, ?)",
+            [Name, Pass_hash, Country, Bio]
         );
         res.json({ Artist_ID: result.insertId, Name, Country, Bio });
     } catch (err) {
@@ -41,10 +41,10 @@ router.get("/:id", async (req, res) => {
 // UPDATE Artist
 router.put("/:id", async (req, res) => {
     try {
-        const { Name, Country, Bio } = req.body;
+        const { Name, Pass_hash, Country, Bio } = req.body; // <-- added Pass_hash
         await pool.query(
-            "UPDATE Artist SET Name = ?, Country = ?, Bio = ? WHERE Artist_ID = ?",
-            [Name, Country, Bio, req.params.id]
+            "UPDATE Artist SET Name = ?, Pass_hash = ?, Country = ?, Bio = ? WHERE Artist_ID = ?",
+            [Name, Pass_hash, Country, Bio, req.params.id]
         );
         res.json({ Artist_ID: req.params.id, Name, Country, Bio });
     } catch (err) {

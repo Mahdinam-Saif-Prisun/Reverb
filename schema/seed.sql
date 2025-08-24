@@ -10,11 +10,11 @@ INSERT INTO User (Name, Email, Pass_hash, Subscription_type, Role) VALUES
 
 -- Artists
 INSERT INTO Artist (Name, Country, Bio) VALUES
-('Artist A', 'USA', 'Bio A'),
-('Artist B', 'UK', 'Bio B'),
-('Artist C', 'Canada', 'Bio C'),
-('Artist D', 'Germany', 'Bio D'),
-('Artist E', 'France', 'Bio E');
+('Artist A', 'pass123', 'USA', 'Bio A'),
+('Artist B', 'pass123', 'UK', 'Bio B'),
+('Artist C', 'pass123', 'Canada', 'Bio C'),
+('Artist D', 'pass123', 'Germany', 'Bio D'),
+('Artist E', 'pass123', 'France', 'Bio E');
 
 -- Albums
 INSERT INTO Album (Title, Release_date, Artist_ID, Genre) VALUES
