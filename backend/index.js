@@ -38,6 +38,9 @@ app.use("/history", historyRouter);
 import likeRoutes from "./routes/like.js";
 app.use("/likes", likeRoutes);
 
+import followRoutes from "./routes/follow.js";
+app.use("/follow", followRoutes);
+
 
 //Routes ^
 
