@@ -29,6 +29,10 @@ app.use("/playlists", playlistsRouter);
 import playlistContentsRouter from "./routes/playlistContents.js";
 app.use("/playlist-contents", playlistContentsRouter);
 
+import queueRouter from "./routes/queue.js";
+app.use("/queue", queueRouter);
+
+
 
 app.get('/test', async (req, res) => {
   try {
