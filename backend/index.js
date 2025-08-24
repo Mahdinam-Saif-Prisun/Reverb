@@ -41,6 +41,9 @@ app.use("/likes", likeRoutes);
 import followRoutes from "./routes/follow.js";
 app.use("/follow", followRoutes);
 
+import rateRouter from "./routes/rate.js";
+app.use("/rate", rateRouter);
+
 
 //Routes ^
 
