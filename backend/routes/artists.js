@@ -6,12 +6,23 @@ const router = express.Router();
 // CREATE Artist
 router.post("/", async (req, res) => {
     try {
-        const { Name, Pass_hash, Country, Bio } = req.body;
+        const { Name, Pass_hash, Email, Country, Bio } = req.body;
+        if (!Name || !Pass_hash || !Email) {
+            return res.status(400).json({ error: "Name, Pass_hash, and Email are required" });
+        }
+
         const [result] = await pool.query(
-            "INSERT INTO Artist (Name, Pass_hash, Country, Bio) VALUES (?, ?, ?, ?)",
-            [Name, Pass_hash, Country, Bio]
+            "INSERT INTO Artist (Name, Pass_hash, Email, Country, Bio) VALUES (?, ?, ?, ?, ?)",
+            [Name, Pass_hash, Email, Country || null, Bio || null]
         );
-        res.json({ Artist_ID: result.insertId, Name, Country, Bio });
+
+        res.status(201).json({
+            Artist_ID: result.insertId,
+            Name,
+            Email,
+            Country: Country || null,
+            Bio: Bio || null
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -27,7 +38,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// GET single Artist
+// GET single Artist by ID
 router.get("/:id", async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM Artist WHERE Artist_ID = ?", [req.params.id]);
@@ -41,12 +52,27 @@ router.get("/:id", async (req, res) => {
 // UPDATE Artist
 router.put("/:id", async (req, res) => {
     try {
-        const { Name, Pass_hash, Country, Bio } = req.body; // <-- added Pass_hash
-        await pool.query(
-            "UPDATE Artist SET Name = ?, Pass_hash = ?, Country = ?, Bio = ? WHERE Artist_ID = ?",
-            [Name, Pass_hash, Country, Bio, req.params.id]
+        const { Name, Pass_hash, Email, Country, Bio } = req.body;
+        if (!Name || !Pass_hash || !Email) {
+            return res.status(400).json({ error: "Name, Pass_hash, and Email are required" });
+        }
+
+        const [result] = await pool.query(
+            "UPDATE Artist SET Name = ?, Pass_hash = ?, Email = ?, Country = ?, Bio = ? WHERE Artist_ID = ?",
+            [Name, Pass_hash, Email, Country || null, Bio || null, req.params.id]
         );
-        res.json({ Artist_ID: req.params.id, Name, Country, Bio });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Artist not found" });
+        }
+
+        res.json({
+            Artist_ID: req.params.id,
+            Name,
+            Email,
+            Country: Country || null,
+            Bio: Bio || null
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -55,7 +81,8 @@ router.put("/:id", async (req, res) => {
 // DELETE Artist
 router.delete("/:id", async (req, res) => {
     try {
-        await pool.query("DELETE FROM Artist WHERE Artist_ID = ?", [req.params.id]);
+        const [result] = await pool.query("DELETE FROM Artist WHERE Artist_ID = ?", [req.params.id]);
+        if (result.affectedRows === 0) return res.status(404).json({ error: "Artist not found" });
         res.json({ message: "Deleted successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
