@@ -1,6 +1,8 @@
-# music_streaming_service
+# 🎵 Reverb – Music Streaming Service
 
-### Features:
+A full-stack music streaming platform built with modern web technologies. Reverb allows users to stream songs, create collaborative playlists, explore new music through radio stations, and manage their listening journey with powerful personalization features.
+
+## 🚀 Features
 
   1. Nested playlist
   2. Collaborative playlist
@@ -13,4 +15,16 @@
   9. User listening history
   10. Artist following system
 
-### Stack: MySQL, Node.js, Express.js, React.js
+## 🛠️ Tech Stack
+1. Frontend: React.js, TailwindCSS
+2. Backend: Node.js, Express.js
+3. Database: MySQL
+
+## 🤝 Contributors
+- [Prisun](https://github.com/Mahdinam-Saif-Prisun)
+- [Mushfiq](https://github.com/MushfiqMonzurRafi)
+- [Arian](https://github.com/arisxm)
+
+
+## 📜 License
+MIT License. Free to use, modify, and distribute.
