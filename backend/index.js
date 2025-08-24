@@ -59,6 +59,8 @@ app.use("/radio-stations", radioStationsRouter);
 import radioStationContentsRouter from "./routes/radioStationContents.js";
 app.use("/radio-station-contents", radioStationContentsRouter);
 
+import composeRouter from "./routes/compose.js";
+app.use("/compose", composeRouter);
 
 
 //Routes ^
