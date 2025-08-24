@@ -53,6 +53,9 @@ app.use("/queue-contents", queueContentsRouter);
 import historyContentsRouter from "./routes/historyContents.js";
 app.use("/history-contents", historyContentsRouter);
 
+import radioStationsRouter from "./routes/radioStations.js";
+app.use("/radio-stations", radioStationsRouter);
+
 
 
 //Routes ^
