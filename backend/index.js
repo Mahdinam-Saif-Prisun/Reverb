@@ -44,6 +44,9 @@ app.use("/follow", followRoutes);
 import rateRouter from "./routes/rate.js";
 app.use("/rate", rateRouter);
 
+import playlistCompileRouter from "./routes/playlistCompile.js";
+app.use("/playlist-compile", playlistCompileRouter);
+
 
 //Routes ^
 
