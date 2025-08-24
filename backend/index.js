@@ -1,12 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import pool from './db.js';
-import usersRouter from './routes/users.js';
-import artistRoutes from "./routes/artists.js";
-import albumRoutes from "./routes/albums.js";
-import songRoutes from "./routes/songs.js";
-import playlistsRouter from "./routes/playlists.js";
-
 
 dotenv.config();
 
@@ -14,13 +8,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); //Parse from data
 
 //Routes
+import usersRouter from './routes/users.js';
 app.use('/users', usersRouter);
+
+import artistRoutes from "./routes/artists.js";
 app.use("/artists", artistRoutes);
+
+import albumRoutes from "./routes/albums.js";
 app.use("/albums", albumRoutes);
+
+import songRoutes from "./routes/songs.js";
 app.use("/songs", songRoutes);
+
+import playlistsRouter from "./routes/playlists.js";
 app.use("/playlists", playlistsRouter);
+
+import playlistContentsRouter from "./routes/playlistContents.js";
+app.use("/playlist-contents", playlistContentsRouter);
 
 
 app.get('/test', async (req, res) => {
