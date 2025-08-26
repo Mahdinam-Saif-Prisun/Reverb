@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import pool from './db.js';
+import cors from "cors";
+
 
 dotenv.config();
 
@@ -8,6 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cors());
 app.use(express.urlencoded({ extended: true })); //Parse from data
 
 //Routes
@@ -65,6 +68,7 @@ app.use("/compose", composeRouter);
 import authRouter from "./routes/auth.js";
 app.use("/auth", authRouter);
 
+
 //Routes ^
 
 app.get('/test', async (req, res) => {
@@ -76,6 +80,12 @@ app.get('/test', async (req, res) => {
     res.status(500).json({ error: 'DB connection failed' });
   }
 });
+
+//Temp homepage
+app.get("/homepage", (req, res) => {
+  res.json({ message: "Welcome to the music streaming service!" });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
