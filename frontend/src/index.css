@@ -1,99 +1,157 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Base body */
-body {
-  font-family: 'Poppins', sans-serif;
-  background: #1a1a1a; /* dark background like Spotify */
-  color: #fff;
+/* Reset & body */
+body, html {
   margin: 0;
   padding: 0;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-::-webkit-scrollbar-thumb {
-  background: #ff6700; /* orange theme */
-  border-radius: 4px;
-}
-
-/* Links */
-a {
-  color: #ff6700;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-a:hover {
-  color: #ffa040;
-}
-
-/* Buttons */
-button {
-  background-color: #ff6700;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-button:hover {
-  background-color: #ffa040;
-}
-
-/* Inputs */
-input, textarea {
-  background-color: #2a2a2a;
-  border: 1px solid #ff6700;
-  color: #fff;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-}
-input:focus, textarea:focus {
-  outline: none;
-  border-color: #ffa040;
-}
-
-/* Headings */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  color: #ffb366; /* lighter orange accent */
-}
-
-/* Containers */
-.container {
-  padding-left: 1rem;
-  padding-right: 1rem;
-  margin-left: auto;
-  margin-right: auto;
+  font-family: Arial, sans-serif;
+  background-color: #121212; /* Darker main background */
+  color: #eee;
 }
 
 /* Navbar */
-nav {
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ff7f50; /* Orange accent */
   padding: 1rem 2rem;
-  background-color: #111; /* dark nav */
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.navbar .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.nav-links a {
+  margin-left: 1.5rem;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  transition: color 0.2s;
+}
+.nav-links a:hover {
+  color: #ffd2b3;
 }
 
-/* Cards / panels */
-.card {
-  background: #2a2a2a;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+/* Centered pages (login, register, home) */
+.centered-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+.form-box, .home-box {
+  background-color: #1f1f1f; /* Card background */
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+  width: 320px;
+  text-align: center;
+  color: #eee;
+}
+.form-box input {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.7rem 0;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background-color: #2a2a2a;
+  color: #eee;
+}
+.form-box input::placeholder {
+  color: #888;
+}
+.form-box button {
+  background-color: #ff7f50;
+  color: white;
+  border: none;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.form-box button:hover {
+  background-color: #ff6333;
+}
+.dropdown {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.7rem 0;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background-color: #2a2a2a;
+  color: #eee;
+}
+
+/* Dashboard */
+.dashboard {
+  display: flex;
+}
+.sidebar {
+  width: 220px;
+  background-color: #1f1f1f;
+  padding: 1rem;
+  height: 100vh;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.5);
+}
+.sidebar h2 {
+  color: #ff7f50;
+  margin-bottom: 1rem;
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+.sidebar ul li {
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  color: #ccc;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar ul li:hover {
+  background-color: #2a2a2a;
+  color: #ffb380;
+}
+
+/* Dashboard content */
+.dashboard-content {
+  flex: 1;
+  padding: 2rem;
+}
+.dashboard-content h2 {
+  color: #ff7f50;
+}
+.dashboard-content p {
+  color: #ccc;
+}
+
+/* Music cards */
+.music-card {
+  background-color: #2a2a2a;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+.music-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.7);
 }
-
-/* Gradients (like Spotify playlist cards) */
-.bg-gradient-orange {
-  background: linear-gradient(135deg, #ff6700, #ffb366);
+.music-card .album-art {
+  background-color: #ff7f50;
+  height: 140px;
+  border-radius: 8px;
+  margin-bottom: 0.7rem;
+}
+.music-card h3 {
+  font-size: 1rem;
+  color: #fff;
+  margin: 0.3rem 0;
+}
+.music-card p {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin: 0;
 }

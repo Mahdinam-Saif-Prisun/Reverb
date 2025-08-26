@@ -1,25 +1,37 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const [accountType, setAccountType] = useState("User"); // User or Artist
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Logging in with:", { email, password });
-    alert("Login submitted! Check console.");
+    // Mock backend response
+    const username = email.split("@")[0];
+    navigate("/dashboard", { state: { user: username, accountType } });
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded shadow mt-6">
-      <h2 className="text-xl font-bold mb-4">Login</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="centered-page">
+      <form className="form-box" onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <select
+          value={accountType}
+          onChange={(e) => setAccountType(e.target.value)}
+          className="dropdown"
+        >
+          <option>User</option>
+          <option>Artist</option>
+        </select>
+
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
           required
         />
         <input
@@ -27,12 +39,9 @@ const Login = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
           required
         />
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-          Login
-        </button>
+        <button type="submit">Login as {accountType}</button>
       </form>
     </div>
   );

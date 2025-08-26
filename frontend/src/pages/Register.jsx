@@ -1,26 +1,37 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const [accountType, setAccountType] = useState("User");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Registering:", { name, email, password });
-    alert("Registration submitted! Check console.");
+    // Mock backend response
+    navigate("/dashboard", { state: { user: name, accountType } });
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded shadow mt-6">
-      <h2 className="text-xl font-bold mb-4">Register</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="centered-page">
+      <form className="form-box" onSubmit={handleSubmit}>
+        <h2>Register</h2>
+        <select
+          value={accountType}
+          onChange={(e) => setAccountType(e.target.value)}
+          className="dropdown"
+        >
+          <option>User</option>
+          <option>Artist</option>
+        </select>
+
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Username"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border rounded"
           required
         />
         <input
@@ -28,7 +39,6 @@ const Register = () => {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
           required
         />
         <input
@@ -36,12 +46,9 @@ const Register = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
           required
         />
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-          Register
-        </button>
+        <button type="submit">Register as {accountType}</button>
       </form>
     </div>
   );

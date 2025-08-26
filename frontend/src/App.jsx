@@ -1,19 +1,29 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Navbar from "./components/Navbar";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
+  const navigate = useNavigate();
+
+  const handleHomeClick = () => {
+    if (window.confirm("Do you want to log out?")) {
+      navigate("/");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      <div className="p-4">
+    <div className="app">
+      <Navbar onHomeClick={handleHomeClick} />
+      <div className="app-content">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>
     </div>
