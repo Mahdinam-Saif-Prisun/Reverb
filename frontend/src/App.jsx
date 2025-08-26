@@ -1,32 +1,30 @@
-import React from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import React, { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Navbar from "./components/Navbar";
+
 
 const App = () => {
-  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
 
-  const handleHomeClick = () => {
-    if (window.confirm("Do you want to log out?")) {
-      navigate("/");
-    }
-  };
+  useEffect(() => {
+    const stored = localStorage.getItem("userData");
+    if (stored) setUserData(JSON.parse(stored));
+  }, []);
 
   return (
-    <div className="app">
-      <Navbar onHomeClick={handleHomeClick} />
-      <div className="app-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </div>
-    </div>
+    <>
+      <Navbar userData={userData} setUserData={setUserData} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login setUserData={setUserData} />} />
+        <Route path="/register" element={<Register setUserData={setUserData} />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </>
   );
 };
 
