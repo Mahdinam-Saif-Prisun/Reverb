@@ -62,6 +62,8 @@ app.use("/radio-station-contents", radioStationContentsRouter);
 import composeRouter from "./routes/compose.js";
 app.use("/compose", composeRouter);
 
+import authRouter from "./routes/auth.js";
+app.use("/auth", authRouter);
 
 //Routes ^
 

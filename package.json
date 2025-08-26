@@ -1,0 +1,23 @@
+{
+  "name": "music_streaming_service",
+  "version": "1.0.0",
+  "description": "A full-stack music streaming platform built with modern web technologies. Reverb allows users to stream songs, create collaborative playlists, explore new music through radio stations, and manage their listening journey with powerful personalization features.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mahdinam-Saif-Prisun/Reverb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mahdinam-Saif-Prisun/Reverb/issues"
+  },
+  "homepage": "https://github.com/Mahdinam-Saif-Prisun/Reverb#readme"
+}
