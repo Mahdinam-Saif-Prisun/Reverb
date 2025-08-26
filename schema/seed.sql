@@ -2,6 +2,7 @@ USE reverb;
 
 -- Users
 INSERT INTO User (Name, Email, Pass_hash, Subscription_type, Role) VALUES
+('Admin', 'admin@example.com', 'admin', 'Premium', 'admin'),
 ('User 1', 'user1@example.com', 'hash1', 'Free', 'user'),
 ('User 2', 'user2@example.com', 'hash2', 'Premium', 'user'),
 ('User 3', 'user3@example.com', 'hash3', 'Free', 'user');
