@@ -1,44 +1,44 @@
 import React from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const UserSidebar = ({ playlists }) => (
-  <div className="sidebar">
-    <h2>Your Playlists</h2>
-    <ul>
-      {playlists.map((p, idx) => (
-        <li key={idx}>{p}</li>
-      ))}
-    </ul>
-    <Link to="/history">My History</Link>
-  </div>
-);
+const UserSidebar = ({ playlists }) => {
+  return (
+    <div className="sidebar">
+      <h2>Your Playlists</h2>
+      <ul>
+        {playlists.map((p, idx) => (
+          <li key={idx}>{p}</li>
+        ))}
+      </ul>
+      <button
+        onClick={() => window.location.href = "/history"}
+        className="sidebar-button"
+      >
+        My History
+      </button>
+    </div>
+  );
+};
 
-const ArtistPanel = () => (
-  <div className="sidebar">
-    <h2>Artist Tools</h2>
-    <ul>
-      <li>Release Album</li>
-      <li>Compose Song</li>
-      <li>Manage Albums</li>
-    </ul>
-  </div>
-);
+const ArtistPanel = () => {
+  return (
+    <div className="sidebar">
+      <h2>Artist Tools</h2>
+      <ul>
+        <li>Release Album</li>
+        <li>Compose Song</li>
+        <li>Manage Albums</li>
+      </ul>
+    </div>
+  );
+};
 
-const Dashboard = () => {
-  const location = useLocation();
-  let { accountType, userData } = location.state || {};
+const Dashboard = ({ userData }) => {
+  const navigate = useNavigate();
 
-  const stored = localStorage.getItem("userData");
-  if (!userData && stored) {
-    const parsed = JSON.parse(stored);
-    accountType = parsed.accountType;
-    userData = parsed;
-  }
+  if (!userData) return <p style={{ padding: "2rem" }}>Please log in first.</p>;
 
-  if (!userData)
-    return <p style={{ padding: "2rem" }}>No user data. Login first.</p>;
-
-  const isUser = accountType === "User";
+  const isUser = userData.accountType === "User";
   const playlists = ["Top Hits", "Chill Vibes", "Workout"];
 
   return (
@@ -46,13 +46,10 @@ const Dashboard = () => {
       {isUser ? <UserSidebar playlists={playlists} /> : <ArtistPanel />}
       <div style={{ flex: 1, padding: "2rem" }}>
         <h2>
-          Welcome {userData.Name} ({accountType})
+          Welcome {userData.Name} ({userData.accountType})
         </h2>
         {isUser ? (
-          <p>
-            Access your queue and <Link to="/history">listening history</Link>{" "}
-            here.
-          </p>
+          <p>Queue and History panel will appear here...</p>
         ) : (
           <p>Use the artist tools from the left panel.</p>
         )}

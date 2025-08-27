@@ -1,29 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { get } from "../api";
-import "./History.css"; // create this for styling
+import axios from "axios";
 
-const History = () => {
+const BACKEND_URL = "http://localhost:3000"; // change if needed
+
+const History = ({ userData }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Get logged-in user data from localStorage
-  const stored = localStorage.getItem("userData");
-  const userData = stored ? JSON.parse(stored) : null;
-
   useEffect(() => {
     if (!userData || !userData.User_ID) {
-      setError("Please log in to see your listening history.");
+      setError("Please log in to see your history.");
       setLoading(false);
       return;
     }
 
     const fetchHistory = async () => {
       try {
-        const res = await get(`/history-contents/${userData.User_ID}`);
-        setHistory(res || []);
+        const res = await axios.get(`${BACKEND_URL}/history-contents/${userData.User_ID}`);
+        setHistory(res.data || []);
       } catch (err) {
-        setError(err?.error || "Failed to fetch history.");
+        console.error(err);
+        setError(err.response?.data?.error || "Failed to fetch history.");
       } finally {
         setLoading(false);
       }
@@ -32,25 +30,21 @@ const History = () => {
     fetchHistory();
   }, [userData]);
 
-  if (loading) return <p className="history-message">Loading history...</p>;
-  if (error) return <p className="history-message error">{error}</p>;
-  if (!history.length) return <p className="history-message">No listening history yet.</p>;
+  if (loading) return <p style={{ padding: "2rem" }}>Loading history...</p>;
+  if (error) return <p style={{ padding: "2rem", color: "red" }}>{error}</p>;
+  if (!history.length) return <p style={{ padding: "2rem" }}>No listening history yet.</p>;
 
   return (
-    <div className="history-page">
-      <h2>Your Listening History</h2>
-      <div className="history-list">
-        {history.map((song, idx) => (
-          <div key={idx} className="history-item">
-            <div className="song-info">
-              <strong className="song-title">{song.Title}</strong>
-              <span className="song-artist">{song.Artist}</span>
-            </div>
-            <div className="song-timestamp">
-              {new Date(song.Timestamp).toLocaleString()}
-            </div>
-          </div>
-        ))}
+    <div className="centered-page">
+      <div className="home-box" style={{ width: "80%", maxWidth: "800px" }}>
+        <h2>Your Listening History</h2>
+        <ul style={{ textAlign: "left", marginTop: "1rem" }}>
+          {history.map((song, idx) => (
+            <li key={idx}>
+              <strong>{song.Title}</strong> - {new Date(song.Timestamp).toLocaleString()}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
