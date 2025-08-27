@@ -4,37 +4,56 @@ import axios from "axios";
 // Backend endpoint
 const BACKEND_URL = "http://localhost:3000";
 
-// --- Theme ---
-const bgColor = "#191c3d";
-const cardBg = "#21255a";
-const accent = "#6c47cd";
-const accent2 = "#3ec3ff";
-const accent3 = "#df7bff";
-const textColor = "#e6e8ff";
-const cardStyle = { background: cardBg, borderRadius: 13, margin: "1.7rem auto", padding: 24, boxShadow: '0 2px 16px #191c3d88', maxWidth: 1000, color: textColor };
+// Theme
+const bgColor = "#1a1a1a";
+const cardBg = "#252525";
+const accent = "#ff6b35"; // Warm orange - primary action color
+const accent2 = "#ffa726"; // Golden orange - secondary actions
+const accent3 = "#66bb6a"; // Soft green - success/positive actions
+const textColor = "#f5f5f5"; // Main text
+const textSecondary = "#b0b0b0"; // Secondary text
+const errorColor = "#ff5722"; // Error/danger
+const successColor = "#4caf50"; // Success messages
+
+const cardStyle = { 
+  background: cardBg, 
+  borderRadius: 16, 
+  margin: "1.5rem auto", 
+  padding: 24, 
+  boxShadow: '0 4px 20px rgba(0,0,0,0.3)', 
+  maxWidth: 1200, 
+  color: textColor,
+  border: "1px solid #333"
+};
+
 const buttonStyle = {
   border: "none",
   color: textColor,
   background: accent,
   cursor: "pointer",
-  padding: "0.47rem 1.3rem",
-  borderRadius: 7,
-  fontWeight: "bold",
-  margin: "0.2rem"
+  padding: "0.6rem 1.4rem",
+  borderRadius: 8,
+  fontWeight: "600",
+  margin: "0.3rem",
+  fontSize: "14px",
+  transition: "all 0.2s ease"
 };
+
 const inputStyle = {
-  background: "#272a48",
+  background: "#2a2a2a",
   color: textColor,
-  border: "none",
-  borderRadius: 7,
-  padding: "0.7rem",
+  border: "2px solid #333",
+  borderRadius: 8,
+  padding: "0.8rem",
   marginBottom: "1rem",
   outline: "none",
-  width: "100%"
+  width: "100%",
+  fontSize: "14px"
 };
-const hrStyle = { border: "none", borderTop: "1px solid #343870", margin: "1.2rem 0" };
-const activeButton = { ...buttonStyle, background: accent2, color: "#171a3d" };
-const smallButton = { ...buttonStyle, padding: "0.2rem 0.6rem", fontSize: "0.9rem" };
+
+const hrStyle = { border: "none", borderTop: "1px solid #444", margin: "1.5rem 0" };
+const activeButton = { ...buttonStyle, background: accent2, color: "#1a1a1a" };
+const smallButton = { ...buttonStyle, padding: "0.3rem 0.8rem", fontSize: "12px" };
 
 // --- Navbar ---
 function Navbar({ userData, setUserData, setView }) {
