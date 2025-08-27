@@ -1,19 +1,13 @@
-const BASE_URL = "http://localhost:3000";
+import axios from "axios";
 
-export async function post(endpoint, body) {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    throw { error: "Invalid response from server" };
-  }
+export const get = async (path) => {
+  const res = await axios.get(`${BACKEND_URL}${path}`);
+  return res.data;
+};
 
-  if (!res.ok) throw data;
-  return data;
-}
+export const post = async (path, body) => {
+  const res = await axios.post(`${BACKEND_URL}${path}`, body);
+  return res.data;
+};
