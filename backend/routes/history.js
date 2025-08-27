@@ -45,7 +45,7 @@ router.get("/user/:id", async (req, res) => {
       ORDER BY hc.Timestamp DESC
     `, [userId]);
 
-    res.json(rows);
+    res.json({ songs: rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });

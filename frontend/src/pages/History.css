@@ -1,0 +1,61 @@
+.history-page {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.history-page h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #1f1f1f;
+  color: #fff;
+  transition: transform 0.1s ease-in-out;
+}
+
+.history-item:hover {
+  transform: scale(1.02);
+  background-color: #2a2a2a;
+}
+
+.song-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.song-title {
+  font-size: 1.1rem;
+}
+
+.song-artist {
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+.song-timestamp {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.history-message {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.history-message.error {
+  color: red;
+}

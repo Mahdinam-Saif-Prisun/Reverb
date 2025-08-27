@@ -22,19 +22,23 @@ const Navbar = ({ userData, setUserData }) => {
             <Link to="/register">Register</Link>
           </>
         ) : (
-          <button
-            onClick={handleLogout}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "white",
-              fontWeight: "bold",
-              cursor: "pointer",
-              marginLeft: "1rem"
-            }}
-          >
-            Logout
-          </button>
+          <>
+            <Link to="/dashboard" style={{ marginRight: "1rem" }}>
+              Dashboard
+            </Link>
+            <button
+              onClick={handleLogout}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "white",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              Logout
+            </button>
+          </>
         )}
       </div>
     </nav>

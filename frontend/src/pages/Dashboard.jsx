@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 
 const UserSidebar = ({ playlists }) => (
   <div className="sidebar">
@@ -9,6 +9,7 @@ const UserSidebar = ({ playlists }) => (
         <li key={idx}>{p}</li>
       ))}
     </ul>
+    <Link to="/history">My History</Link>
   </div>
 );
 
@@ -27,17 +28,15 @@ const Dashboard = () => {
   const location = useLocation();
   let { accountType, userData } = location.state || {};
 
-  // fallback to localStorage
-  if (!userData) {
-    const stored = localStorage.getItem("userData");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      accountType = parsed.accountType;
-      userData = parsed;
-    }
+  const stored = localStorage.getItem("userData");
+  if (!userData && stored) {
+    const parsed = JSON.parse(stored);
+    accountType = parsed.accountType;
+    userData = parsed;
   }
 
-  if (!userData) return <p style={{ padding: "2rem" }}>No user data. Login first.</p>;
+  if (!userData)
+    return <p style={{ padding: "2rem" }}>No user data. Login first.</p>;
 
   const isUser = accountType === "User";
   const playlists = ["Top Hits", "Chill Vibes", "Workout"];
@@ -46,9 +45,14 @@ const Dashboard = () => {
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {isUser ? <UserSidebar playlists={playlists} /> : <ArtistPanel />}
       <div style={{ flex: 1, padding: "2rem" }}>
-        <h2>Welcome {userData.Name} ({accountType})</h2>
+        <h2>
+          Welcome {userData.Name} ({accountType})
+        </h2>
         {isUser ? (
-          <p>Queue and History panel will appear here...</p>
+          <p>
+            Access your queue and <Link to="/history">listening history</Link>{" "}
+            here.
+          </p>
         ) : (
           <p>Use the artist tools from the left panel.</p>
         )}
