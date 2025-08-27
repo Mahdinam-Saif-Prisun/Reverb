@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { post } from "../api";
+import "./Login.css"; // create a Login.css file
 
 const Login = () => {
-  const [accountType, setAccountType] = useState("User"); // User or Artist
+  const [accountType, setAccountType] = useState("User");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     const stored = localStorage.getItem("userData");
     if (stored) navigate("/dashboard");
@@ -20,18 +20,12 @@ const Login = () => {
     setError("");
 
     try {
-      // Determine endpoint dynamically
       const endpoint = `/auth/${accountType.toLowerCase()}/login`;
-
-      // Call backend
       const res = await post(endpoint, { Email: email, Pass_hash: password });
-
-      // Extract user info
       const userData = accountType === "User" ? res.user : res.artist;
 
       if (!userData) throw new Error("Invalid response from server");
 
-      // Save all necessary info for later use (Dashboard, History, etc.)
       localStorage.setItem(
         "userData",
         JSON.stringify({
@@ -41,24 +35,21 @@ const Login = () => {
         })
       );
 
-      // Navigate to dashboard with state
       navigate("/dashboard", { state: { accountType, userData } });
     } catch (err) {
-      // Catch JSON or network errors
-      console.error(err);
-      setError(err?.error || err.message || "Unknown error");
+      setError(err.message || "Unknown error");
     }
   };
 
   return (
-    <div className="centered-page">
-      <form className="form-box" onSubmit={handleSubmit}>
-        <h2>Login</h2>
+    <div className="login-page">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h2>Login to Reverb</h2>
 
         <select
           value={accountType}
           onChange={(e) => setAccountType(e.target.value)}
-          className="dropdown"
+          className="login-select"
         >
           <option>User</option>
           <option>Artist</option>
@@ -80,9 +71,11 @@ const Login = () => {
           required
         />
 
-        <button type="submit">Login as {accountType}</button>
+        <button type="submit" className="login-button">
+          Login as {accountType}
+        </button>
 
-        {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
+        {error && <div className="login-error">{error}</div>}
       </form>
     </div>
   );
