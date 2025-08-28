@@ -203,7 +203,7 @@ function PlayerBar({ currentSong, audioRef, stopPlayer }) {
             )}
           </div>
         </div>
-        <audio ref={audioRef} src={currentSong.Url} controls autoPlay style={{ flex: 3, maxWidth: 700, background: "#222" }} onEnded={stopPlayer} />
+        <audio ref={audioRef} src={currentSong.Url} controls autoPlay style={{ flex: 3, maxWidth: 700, background: "#222" }} />
         <button onClick={stopPlayer} style={{ ...buttonStyle, background: errorColor, marginLeft: "2rem" }}>◻️</button>
       </div>
     </>
@@ -477,7 +477,7 @@ function SongsPage({
 // --- Queue Page ---
 function QueuePage({
   userData, queues, currentQueueId, setCurrentQueueId, queueSongs,
-  fetchQueues, fetchQueueSongs, playSong, removeFromQueue, sortQueue, addQueueDB, deleteQueue
+  fetchQueues, fetchQueueSongs, playSong, playQueue, removeFromQueue, sortQueue, addQueueDB, deleteQueue
 }) {
   const [newQueueIncognito, setNewQueueIncognito] = useState(false);
 
@@ -546,10 +546,10 @@ function QueuePage({
           </h3>
           {queueSongs.length > 0 && (
             <button
-              style={{ ...buttonStyle, background: accent3, marginBottom: "1rem" }}
+              style={{ ...buttonStyle, background: '#6cc570', marginBottom: 10 }}
               onClick={() => playQueue(currentQueueId, [...queueSongs])}
             >
-            ▶ Play Queue
+              ▶ Play Queue
             </button>
           )}
           {queueSongs.length === 0 ? <div style={{ color: "#bbb" }}>No songs queued.</div> :
@@ -1574,20 +1574,20 @@ function App() {
   const isAdmin = userData?.Role === "admin";
 
   const playQueue = async (queueId, songs) => {
-  if (!songs || songs.length === 0) return;
-  let idx = 0;
-  const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
+    if (!songs || songs.length === 0) return;
+    let idx = 0;
+    const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
 
-  const playNext = async () => {
-    if (idx >= songs.length) {
-      setCurrentSong(null);
-      return;
-    }
+    const playNext = () => {
+      if (idx >= songs.length) {
+        setCurrentSong(null);
+        return;
+      }
       const song = songs[idx];
       setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
       if (audioRef.current) {
         audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
-        audioRef.current.play().catch(e => {});
+        audioRef.current.play().catch(() => {});
         audioRef.current.onended = async () => {
           if (!incognito) {
             await addToHistory(song.Song_ID);
@@ -1598,9 +1598,9 @@ function App() {
         };
       }
     };
+
     playNext();
   };
-
 
   return (
     <div style={{ background: bgColor, minHeight: "100vh", color: textColor }}>
