@@ -216,7 +216,6 @@ function Dashboard({ userData }) {
     <div style={{ ...cardStyle, marginTop: 56, background: "#262c51" }}>
       <h2>Welcome <span style={{ color: accent2 }}>{userData.Name}</span>!</h2>
       <hr style={hrStyle} />
-      <div>Account Type: <b style={{ color: accent }}>{userData.accountType}</b></div>
       {userData.accountType === "User" && <div style={{ marginTop: 22, color: accent2 }}>Browse using the navigation above.</div>}
       {userData.accountType === "Artist" &&
         <div style={{ marginTop: 22, color: accent2 }}>
@@ -477,7 +476,7 @@ function SongsPage({
 // --- Queue Page ---
 function QueuePage({
   userData, queues, currentQueueId, setCurrentQueueId, queueSongs,
-  fetchQueues, fetchQueueSongs, playSong, removeFromQueue, sortQueue, addQueueDB, deleteQueue
+  fetchQueues, playSong, removeFromQueue, sortQueue, addQueueDB, deleteQueue, playQueue
 }) {
   const [newQueueIncognito, setNewQueueIncognito] = useState(false);
 
@@ -649,8 +648,8 @@ function PlaylistsPage({
       fetchPlaylistDetails();
     }
   }, [selected]);
-
-  const isOwner = selected && userData.User_ID === selected.Owner_UID;
+  const isAdmin = userData?.Role === "admin";
+  const isOwner = isAdmin || (selected && userData.User_ID === selected.Owner_UID);
   const isCollaborator = selected && compilers.some(c => c.User_ID === userData.User_ID);
   const collaboratorUsers = compilers.map(c => users.find(u => u.User_ID === c.User_ID)).filter(Boolean);
 
@@ -718,23 +717,6 @@ function PlaylistsPage({
       setCompilers(compileRes.data.filter(row => row.Playlist_ID === selected.Playlist_ID));
     } catch (err) {
       console.error("Error removing collaborator:", err);
-    }
-  };
-
-  const addSong = async () => {
-    if (!addSongId) return;
-    try {
-      await axios.post(`${BACKEND_URL}/playlist-contents`, { 
-        Playlist_ID: selected.Playlist_ID, 
-        Song_ID: Number(addSongId), 
-        Custom_index: songs.length 
-      });
-      setAddSongId("");
-      
-      const contentsRes = await axios.get(`${BACKEND_URL}/playlist-contents/playlist/${selected.Playlist_ID}`);
-      setSongs(contentsRes.data);
-    } catch (err) {
-      console.error("Error adding song to playlist:", err);
     }
   };
 
@@ -816,6 +798,11 @@ function PlaylistsPage({
                 padding: "0.7rem 1.1rem",
                 color: selected && selected.Playlist_ID === p.Playlist_ID ? textColor : null,
                 userSelect: "none",
+
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                overflow: "hidden",
               }}
                 onClick={() => setSelected(p)}
                 tabIndex={0}
@@ -824,7 +811,7 @@ function PlaylistsPage({
                 aria-selected={selected && selected.Playlist_ID === p.Playlist_ID}
               >
                 {p.Name} {p.Parent_playlist ? `(Parent: ${allPlaylists.find(x => x.Playlist_ID === p.Parent_playlist)?.Name || p.Parent_playlist})` : ""}
-                {userData.User_ID === p.Owner_UID && (
+                {(userData.User_ID === p.Owner_UID || isAdmin) && (
                   <button 
                     style={{ ...buttonStyle, background: accent2, float: "right" }} 
                     aria-label={`Delete playlist ${p.Name}`} 
@@ -870,8 +857,6 @@ function PlaylistsPage({
                     </li>
                   )}
                 </ul>
-
-                {(isOwner || isCollaborator) && (
                   <>
                     <select
                       value={addUserId}
@@ -892,40 +877,6 @@ function PlaylistsPage({
 
               <div style={{ marginBottom: 20 }}>
                 <span style={{ fontWeight: "bold" }}>Playlist Songs</span>
-
-                {(isOwner || isCollaborator) && (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="Search songs to add..."
-                      value={searchSongText ?? ""}
-                      onChange={e => setSearchSongText(e.target.value)}
-                      style={{ ...inputStyle, maxWidth: 180, marginBottom: "0.5rem", display: "inline-block" }}
-                    />
-                    <select
-                      value={addSongId}
-                      onChange={e => setAddSongId(e.target.value)}
-                      style={{ ...inputStyle, maxWidth: 220, marginLeft: 10, marginBottom: "0.5rem", display: "inline-block" }}
-                      aria-label="Select Song to add to playlist"
-                    >
-                      <option value="">Select song...</option>
-                      {availableSongs
-                        .filter(s =>
-                          !songs.some(ps => ps.Song_ID === s.Song_ID) &&
-                          (!searchSongText ||
-                          s.Title.toLowerCase().includes(searchSongText.toLowerCase()))
-                        )
-                        .map(s => (
-                          <option key={s.Song_ID} value={s.Song_ID}>
-                            {s.Title}
-                          </option>
-                        ))}
-                    </select>
-                    <button style={buttonStyle} onClick={addSong}>Add Song</button>
-                  </>
-                )}
-
-
               </div>
 
               <ul style={{ maxHeight: "380px", overflowY: "auto", listStyle: "none", padding: 0 }}>
@@ -1402,6 +1353,55 @@ function App() {
     }
   };
 
+  const playQueue = (queueId, songs) => {
+    if (!songs || songs.length === 0) return;
+    let currentIdx = 0;
+    const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
+
+    const playNext = () => {
+      if (currentIdx >= songs.length) {
+        setCurrentSong(null);
+        return;
+      }
+      const song = songs[currentIdx];
+      setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
+
+      if (audioRef.current) {
+        audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
+        audioRef.current.play().catch(() => {});
+
+        // Clear existing event handler just for safety
+        audioRef.current.onended = null;
+
+        // Use non-async function, but handle async tasks in an IIFE inside onended
+        audioRef.current.onended = () => {
+          (async () => {
+            try {
+              if (!incognito) {
+                await addToHistory(song.Song_ID);
+              }
+            } catch (err) {
+              console.error('Error adding to history:', err);
+            }
+
+            try {
+              await removeFromQueue(queueId, song.Song_ID);
+            } catch (err) {
+              console.error('Error removing from queue:', err);
+            }
+
+            currentIdx++;
+            playNext();
+          })();
+        };
+      }
+    };
+
+    playNext();
+  };
+
+
+
   // Like functions
   const likeSong = async (songId) => {
     try {
@@ -1642,6 +1642,9 @@ function App() {
             sortQueue={sortQueue} 
             addQueueDB={addQueueDB} 
             deleteQueue={deleteQueue}
+            setCurrentSong={setCurrentSong}
+            audioRef={audioRef}
+            addToHistory={addToHistory}
           />
         ) : view === "playlists" && isUser ? (
           <PlaylistsPage

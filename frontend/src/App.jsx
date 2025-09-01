@@ -147,7 +147,7 @@ function AuthForm({ setUserData, setView }) {
 }
 
 // --- PlayerBar ---
-function PlayerBar({ currentSong, audioRef, stopPlayer }) {
+function PlayerBar({ currentSong, audioRef, stopPlayer, onEnded }) {
   if (!currentSong) return null;
 
   const artistNames = currentSong?.ArtistsDisplay || "";
@@ -162,8 +162,9 @@ function PlayerBar({ currentSong, audioRef, stopPlayer }) {
   const styleInnerText = {
     display: "inline-block",
     paddingLeft: artistNames.length > 50 ? "100%" : "0",
-    animation: artistNames.length > 50 ? "scroll-left 20s linear infinite" : "none"
+    animation: artistNames.length > 50 ? "scroll-left 20s linear infinite" : "none",
   };
+
   return (
     <>
       <style>{`
@@ -187,11 +188,32 @@ function PlayerBar({ currentSong, audioRef, stopPlayer }) {
           left:0;
         }
       `}</style>
-      <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, background: "#25184a", color: "#fff", boxShadow: "0 0 22px #6c47cd44",
-        display: "flex", alignItems: "center", padding: "0.9rem 2.5rem", fontSize: "1.18rem", zIndex: 99, borderTop: "2px solid " + accent
-      }}>
-        <div style={{ flex: 1, overflow: "hidden", position: "relative", marginRight: "2rem" }}>
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "#25184a",
+          color: "#fff",
+          boxShadow: "0 0 22px #6c47cd44",
+          display: "flex",
+          alignItems: "center",
+          padding: "0.9rem 2.5rem",
+          fontSize: "1.18rem",
+          zIndex: 99,
+          borderTop: "2px solid " + accent,
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            overflow: "hidden",
+            position: "relative",
+            marginRight: "2rem",
+          }}
+        >
           <b>{currentSong.Title}</b>
           <div style={styleScrollingText}>
             <div style={styleInnerText}>{artistNames}</div>
@@ -203,8 +225,23 @@ function PlayerBar({ currentSong, audioRef, stopPlayer }) {
             )}
           </div>
         </div>
-        <audio ref={audioRef} src={currentSong.Url} controls autoPlay style={{ flex: 3, maxWidth: 700, background: "#222" }} onEnded={stopPlayer} />
-        <button onClick={stopPlayer} style={{ ...buttonStyle, background: errorColor, marginLeft: "2rem" }}>◻️</button>
+
+        <audio
+          ref={audioRef}
+          onEnded={onEnded}
+          controls
+          autoPlay
+          style={{ width: "100%" }}
+          src={currentSong.Url}
+        />
+
+        <button
+          onClick={stopPlayer}
+          style={{ ...buttonStyle, background: errorColor, marginLeft: "2rem" }}
+          aria-label="Stop playback"
+        >
+          ◻️
+        </button>
       </div>
     </>
   );
@@ -476,8 +513,7 @@ function SongsPage({
 // --- Queue Page ---
 function QueuePage({
   userData, queues, currentQueueId, setCurrentQueueId, queueSongs,
-  fetchQueues, fetchQueueSongs, playSong, removeFromQueue, sortQueue, addQueueDB, deleteQueue,
-  setCurrentSong, audioRef, addToHistory
+  fetchQueues, playSong, removeFromQueue, sortQueue, addQueueDB, deleteQueue, playQueue
 }) {
   const [newQueueIncognito, setNewQueueIncognito] = useState(false);
 
@@ -574,7 +610,7 @@ function QueuePage({
           {queueSongs.length > 0 && (
             <button
               style={{ ...buttonStyle, background: accent3, marginBottom: "1rem" }}
-              onClick={() => playQueue(currentQueueId, [...queueSongs])}
+              onClick={() => playQueue(currentQueueId)}
             >
             ▶ Play Queue
             </button>
@@ -745,23 +781,6 @@ function PlaylistsPage({
       setCompilers(compileRes.data.filter(row => row.Playlist_ID === selected.Playlist_ID));
     } catch (err) {
       console.error("Error removing collaborator:", err);
-    }
-  };
-
-  const addSong = async () => {
-    if (!addSongId) return;
-    try {
-      await axios.post(`${BACKEND_URL}/playlist-contents`, { 
-        Playlist_ID: selected.Playlist_ID, 
-        Song_ID: Number(addSongId), 
-        Custom_index: songs.length 
-      });
-      setAddSongId("");
-      
-      const contentsRes = await axios.get(`${BACKEND_URL}/playlist-contents/playlist/${selected.Playlist_ID}`);
-      setSongs(contentsRes.data);
-    } catch (err) {
-      console.error("Error adding song to playlist:", err);
     }
   };
 
@@ -1225,6 +1244,7 @@ function App() {
   const [queues, setQueues] = useState([]);
   const [currentQueueId, setCurrentQueueId] = useState(null);
   const [queueSongs, setQueueSongs] = useState([]);
+  const currentQueueSongsRef = useRef([]);
 
   // Playlists
   const [allPlaylists, setAllPlaylists] = useState([]);
@@ -1401,6 +1421,117 @@ function App() {
     }
   };
 
+  const currentPlayIndexRef = useRef(0);
+
+  const playQueue = async (queueId) => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/queue-contents/queue/${queueId}`);
+      const songs = res.data || [];
+      if (songs.length === 0) {
+        setCurrentSong(null);
+        setQueueSongs([]);
+        return;
+      }
+      setQueueSongs(songs);
+      setCurrentQueueId(queueId);
+      startPlayingSong(songs[0]);
+    } catch (err) {
+      console.error("Error fetching queue songs:", err);
+    }
+  };
+
+  // Start playing a specific song (update media src and play)
+  const startPlayingSong = (song) => {
+    setCurrentSong(song);
+    if (audioRef.current && song) {
+      audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
+      audioRef.current.play().catch(() => {});
+    }
+  };
+
+  // Handle when current song ends
+  const handleSongEnd = async () => {
+    if (!currentSong) return;
+
+    try {
+      // Add to history if queue is not incognito
+      const isIncognito = queues.find(q => q.Queue_ID === currentQueueId)?.Incognito;
+      if (!isIncognito) {
+        await addToHistory(currentSong.Song_ID);
+      }
+
+      // Remove from backend queue
+      await removeFromQueue(currentQueueId, currentSong.Song_ID);
+
+      // Update local queue songs state by removing the played song
+      setQueueSongs(prev => {
+        const newQueue = prev.filter(s => s.Song_ID !== currentSong.Song_ID);
+        // Play next song if exists
+        if (newQueue.length > 0) {
+          startPlayingSong(newQueue[0]);
+        } else {
+          setCurrentSong(null);
+        }
+        return newQueue;
+      });
+    } catch (error) {
+      console.error("Error handling song end:", error);
+      // On error, attempt to continue playing next song
+      setQueueSongs(prev => {
+        const newQueue = prev.filter(s => s.Song_ID !== currentSong.Song_ID);
+        if (newQueue.length > 0) {
+          startPlayingSong(newQueue[0]);
+        } else {
+          setCurrentSong(null);
+        }
+        return newQueue;
+      });
+    }
+  };
+
+  const playSongByIndex = (queueId) => {
+    const songsArray = currentQueueSongsRef.current;
+    if (songsArray.length === 0) {
+      setCurrentSong(null);
+      return;
+    }
+    
+    // Always play the FIRST song (index 0)
+    const song = songsArray[0];
+    setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
+
+    if (audioRef.current) {
+      audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
+      audioRef.current.play().catch(() => {});
+    
+      audioRef.current.onended = async () => {
+        try {
+          // Add to history unless the queue is incognito
+          if (!queues.find(q => q.Queue_ID === queueId)?.Incognito) {
+            await addToHistory(song.Song_ID);
+          }
+          
+          // Remove from backend queue
+          await removeFromQueue(queueId, song.Song_ID);
+
+          // Update local queue songs by filtering out the played song
+          currentQueueSongsRef.current = currentQueueSongsRef.current.filter(s => s.Song_ID !== song.Song_ID);
+          setQueueSongs(currentQueueSongsRef.current);
+
+          // Play the next first song in the updated queue
+          playSongByIndex(queueId);
+        } catch (err) {
+          console.error("Error during queue song end handling:", err);
+          // Even if error, remove and continue playing next
+          currentQueueSongsRef.current = currentQueueSongsRef.current.filter(s => s.Song_ID !== song.Song_ID);
+          setQueueSongs(currentQueueSongsRef.current);
+          playSongByIndex(queueId);
+        }
+      };
+    }
+  };
+
+
   // Like functions
   const likeSong = async (songId) => {
     try {
@@ -1572,35 +1703,6 @@ function App() {
   const isArtist = userData?.accountType === "Artist";
   const isAdmin = userData?.Role === "admin";
 
-  const playQueue = async (queueId, songs) => {
-  if (!songs || songs.length === 0) return;
-  let idx = 0;
-  const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
-
-  const playNext = async () => {
-    if (idx >= songs.length) {
-      setCurrentSong(null);
-      return;
-    }
-      const song = songs[idx];
-      setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
-      if (audioRef.current) {
-        audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
-        audioRef.current.play().catch(e => {});
-        audioRef.current.onended = async () => {
-          if (!incognito) {
-            await addToHistory(song.Song_ID);
-          }
-          await removeFromQueue(queueId, song.Song_ID);
-          idx++;
-          playNext();
-        };
-      }
-    };
-    playNext();
-  };
-
-
   return (
     <div style={{ background: bgColor, minHeight: "100vh", color: textColor }}>
       <Navbar userData={userData} setUserData={setUserData} setView={setView} />
@@ -1710,7 +1812,12 @@ function App() {
           </div>
         )}
       </div>
-      <PlayerBar currentSong={currentSong} audioRef={audioRef} stopPlayer={stopPlayer} />
+      <PlayerBar 
+        currentSong={currentSong} 
+        audioRef={audioRef} 
+        stopPlayer={stopPlayer} 
+        onEnded={handleSongEnd}
+      />
     </div>
   );
 }
