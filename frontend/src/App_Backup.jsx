@@ -857,8 +857,6 @@ function PlaylistsPage({
                     </li>
                   )}
                 </ul>
-
-                {(isOwner || isAdmin) && (
                   <>
                     <select
                       value={addUserId}
@@ -879,7 +877,6 @@ function PlaylistsPage({
 
               <div style={{ marginBottom: 20 }}>
                 <span style={{ fontWeight: "bold" }}>Playlist Songs</span>
-
               </div>
 
               <ul style={{ maxHeight: "380px", overflowY: "auto", listStyle: "none", padding: 0 }}>
@@ -1575,6 +1572,35 @@ function App() {
   const isUser = userData?.accountType === "User";
   const isArtist = userData?.accountType === "Artist";
   const isAdmin = userData?.Role === "admin";
+
+  const playQueue = async (queueId, songs) => {
+  if (!songs || songs.length === 0) return;
+  let idx = 0;
+  const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
+
+  const playNext = async () => {
+    if (idx >= songs.length) {
+      setCurrentSong(null);
+      return;
+    }
+      const song = songs[idx];
+      setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
+      if (audioRef.current) {
+        audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
+        audioRef.current.play().catch(e => {});
+        audioRef.current.onended = async () => {
+          if (!incognito) {
+            await addToHistory(song.Song_ID);
+          }
+          await removeFromQueue(queueId, song.Song_ID);
+          idx++;
+          playNext();
+        };
+      }
+    };
+    playNext();
+  };
+
 
   return (
     <div style={{ background: bgColor, minHeight: "100vh", color: textColor }}>
