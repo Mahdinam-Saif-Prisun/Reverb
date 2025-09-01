@@ -12,7 +12,7 @@ const accent2 = "#ffa726"; // Golden orange - secondary actions
 const accent3 = "#66bb6a"; // Soft green - success/positive actions
 const textColor = "#f5f5f5"; // Main text
 const textSecondary = "#b0b0b0"; // Secondary text
-const errorColor = "#ff5722"; // Error/danger
+const errorColor = "#ff2222ff"; // Error/danger
 const successColor = "#4caf50"; // Success messages
 
 const cardStyle = { 
@@ -203,8 +203,8 @@ function PlayerBar({ currentSong, audioRef, stopPlayer }) {
             )}
           </div>
         </div>
-        <audio ref={audioRef} src={currentSong.Url} controls autoPlay style={{ flex: 3, maxWidth: 410, background: "#222" }} onEnded={stopPlayer} />
-        <button onClick={stopPlayer} style={{ ...buttonStyle, background: accent2, marginLeft: "2rem" }}>Stop</button>
+        <audio ref={audioRef} src={currentSong.Url} controls autoPlay style={{ flex: 3, maxWidth: 700, background: "#222" }} onEnded={stopPlayer} />
+        <button onClick={stopPlayer} style={{ ...buttonStyle, background: errorColor, marginLeft: "2rem" }}>◻️</button>
       </div>
     </>
   );
@@ -228,13 +228,30 @@ function Dashboard({ userData }) {
 }
 
 // --- Songs Page ---
-function SongsPage({ userData, queues, currentQueueId, setCurrentQueueId, addToQueue, playSong, likeSong, unlikeSong, likedSongIDs, rateSong, getRating }) {
-  const [songs, setSongs] = useState([]);
-  const [query, setQuery] = useState("");
-  const [collabArtists, setCollabArtists] = useState({});
-  const [loading, setLoading] = useState(true);
+function SongsPage({
+  userData,
+  queues,
+  currentQueueId,
+  setCurrentQueueId,
+  addToQueue,
+  playSong,
+  likeSong,
+  unlikeSong,
+  likedSongIDs,
+  rateSong,
+  getRating,
+  myPlaylist,
+  collabPlaylist
+}) {
+  const [songs, setSongs] = React.useState([]);
+  const [query, setQuery] = React.useState("");
+  const [collabArtists, setCollabArtists] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
+  // State for selected playlist per song for adding songs
+  const [selectedPlaylistForSong, setSelectedPlaylistForSong] = React.useState({});
+
+  React.useEffect(() => {
     const fetchSongs = async () => {
       try {
         setLoading(true);
@@ -250,46 +267,72 @@ function SongsPage({ userData, queues, currentQueueId, setCurrentQueueId, addToQ
     fetchSongs();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (songs.length > 0) {
-      songs.forEach(s => {
-        axios.get(`${BACKEND_URL}/compose/song/${s.Song_ID}`)
-          .then(res => {
-            setCollabArtists(ca => ({ ...ca, [s.Song_ID]: res.data || [] }));
+      songs.forEach((s) => {
+        axios
+          .get(`${BACKEND_URL}/compose/song/${s.Song_ID}`)
+          .then((res) => {
+            setCollabArtists((ca) => ({ ...ca, [s.Song_ID]: res.data || [] }));
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(`Error fetching artists for song ${s.Song_ID}:`, err);
-            setCollabArtists(ca => ({ ...ca, [s.Song_ID]: [] }));
+            setCollabArtists((ca) => ({ ...ca, [s.Song_ID]: [] }));
           });
       });
     }
   }, [songs]);
 
-  const filtered = songs.filter(s => s.Title && s.Title.toLowerCase().includes(query.toLowerCase()));
-
   function artistListString(songID) {
     if (!collabArtists[songID]) return "";
-    return collabArtists[songID].map(a => a.Name).join(", ");
+    return collabArtists[songID].map((a) => a.Name).join(", ");
   }
+
+  const filtered = songs.filter(
+    (s) => s.Title && s.Title.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const handleAddSongToPlaylist = async (songId) => {
+    const playlistId = selectedPlaylistForSong[songId];
+    if (!playlistId) {
+      alert("Please select a playlist to add this song.");
+      return;
+    }
+    try {
+      await axios.post(`${BACKEND_URL}/playlist-contents`, {
+        Playlist_ID: playlistId,
+        Song_ID: songId,
+      });
+      alert("Song added to playlist successfully.");
+      setSelectedPlaylistForSong((prev) => ({ ...prev, [songId]: "" }));
+    } catch (error) {
+      console.error("Error adding song to playlist:", error);
+      alert("Failed to add song to playlist.");
+    }
+  };
 
   const renderStars = (songID) => {
     const val = getRating(songID) || 0;
     return (
       <span style={{ marginLeft: 14 }}>
-        {[1, 2, 3, 4, 5].map(star => (
+        {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
             style={{
               fontSize: 20,
-              color: star <= val ? accent2 : "#666",
-              cursor: "pointer"
+              color: star <= val ? "#ffa726" : "#666",
+              cursor: "pointer",
             }}
             onClick={() => rateSong(songID, star)}
             aria-label={`Rate ${star} stars`}
             role="button"
             tabIndex={0}
-            onKeyDown={e => { if (e.key === "Enter") rateSong(songID, star); }}
-          >★</span>
+            onKeyDown={(e) => {
+              if (e.key === "Enter") rateSong(songID, star);
+            }}
+          >
+            ★
+          </span>
         ))}
       </span>
     );
@@ -298,79 +341,138 @@ function SongsPage({ userData, queues, currentQueueId, setCurrentQueueId, addToQ
   if (loading) {
     return (
       <div style={cardStyle}>
-        <h2><span style={{ color: accent2 }}>Songs</span></h2>
-        <div style={{ color: "#bbb", textAlign: "center", padding: "2rem" }}>Loading songs...</div>
+        <h2>
+          <span style={{ color: "#ffa726" }}>Songs</span>
+        </h2>
+        <div style={{ color: "#bbb", textAlign: "center", padding: "2rem" }}>
+          Loading songs...
+        </div>
       </div>
     );
   }
 
   return (
     <div style={cardStyle}>
-      <h2><span style={{ color: accent2 }}>Songs</span></h2>
-      <div style={{ display: 'flex', gap: 18, flexWrap: "wrap", alignItems: "center", marginBottom: 18 }}>
-        <input 
-          placeholder="Search song..." 
-          value={query} 
-          onChange={e => setQuery(e.target.value)} 
-          style={{ ...inputStyle, flex: 1, maxWidth: 350, marginBottom: 0 }} 
+      <h2>
+        <span style={{ color: "#ffa726" }}>Songs</span>
+      </h2>
+      <div
+        style={{
+          display: "flex",
+          gap: 18,
+          flexWrap: "wrap",
+          alignItems: "center",
+          marginBottom: 18,
+        }}
+      >
+        <input
+          placeholder="Search songs..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{ ...inputStyle, flex: 1, maxWidth: 350, marginBottom: 0 }}
         />
         {queues.length > 0 && (
-          <select 
-            value={currentQueueId || ""} 
-            onChange={e => setCurrentQueueId(Number(e.target.value))} 
-            style={{ ...inputStyle, maxWidth: 260, marginBottom: 0 }} 
+          <select
+            value={currentQueueId || ""}
+            onChange={(e) => setCurrentQueueId(Number(e.target.value))}
+            style={{ ...inputStyle, maxWidth: 260, marginBottom: 0 }}
             aria-label="Select Queue to add song"
           >
-            {queues.map(q => <option key={q.Queue_ID} value={q.Queue_ID}>{q.Incognito ? "Incognito " : ""}Q{q.Queue_ID}</option>)}
+            {queues.map((q) => (
+              <option key={q.Queue_ID} value={q.Queue_ID}>
+                {q.Incognito ? "Incognito " : ""}
+                Q{q.Queue_ID}
+              </option>
+            ))}
           </select>
         )}
       </div>
-      
       {filtered.length === 0 ? (
-        <div style={{ color: "#bbb", textAlign: "center", padding: "2rem" }}>
-          {songs.length === 0 ? "No songs available." : "No songs match your search."}
+        <div style={{ color: "#bbb", textAlign: "center" }}>
+          {songs.length === 0 ? "No songs available." : "No songs match your query."}
         </div>
       ) : (
-        <table style={{ width: "100%", color: textColor, background: "#191c35", borderRadius: 8, fontSize: 17, borderCollapse: "collapse" }}>
+        <table
+          style={{
+            width: "100%",
+            color: "#f5f5f5",
+            background: "#191f35",
+            borderRadius: 8,
+            fontSize: 17,
+            borderCollapse: "collapse",
+          }}
+        >
           <thead>
             <tr style={{ background: "#181f38", textAlign: "left" }}>
-              <th style={{padding:"0.75rem 1rem"}}>Title</th>
-              <th style={{padding:"0.75rem 1rem", maxWidth: 250}}>Artists</th>
-              <th style={{padding:"0.75rem 1rem"}}>Duration</th>
-              <th style={{padding:"0.75rem 1rem"}}>Actions</th>
-              <th style={{padding:"0.75rem 1rem"}}>Likes</th>
-              <th style={{padding:"0.75rem 1rem"}}>Rating</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Title</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Artists</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Duration</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Actions</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Add to Playlist</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Likes</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Rating</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(s =>
-              <tr key={s.Song_ID} style={{ borderBottom: "1px solid #2a2f57" }}>
-                <td style={{ fontWeight: "bold", padding: "0.8rem 1rem" }}>{s.Title}</td>
-                <td style={{ padding: "0.8rem 1rem", maxWidth: 260, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={artistListString(s.Song_ID)}>
-                  {artistListString(s.Song_ID) || "Unknown Artist"}
-                </td>
-                <td style={{ padding: "0.8rem 1rem", fontVariantNumeric: "tabular-nums" }}>{formatDuration(s.Duration)}</td>
+            {filtered.map((song) => (
+              <tr key={song.Song_ID}>
+                <td style={{ fontWeight: "bold", padding: "0.8rem 1rem" }}>{song.Title}</td>
                 <td style={{ padding: "0.8rem 1rem" }}>
-                  <button style={buttonStyle} onClick={() => playSong({ ...s, ArtistsDisplay: artistListString(s.Song_ID) })} aria-label={`Play ${s.Title}`}>▶ Play</button>
-                  {currentQueueId && <button style={buttonStyle} onClick={() => addToQueue(s, currentQueueId)} aria-label={`Add ${s.Title} to queue`}>+ Queue</button>}
+                  {artistListString(song.Song_ID) || "Unknown Artist"}
                 </td>
-                <td style={{ padding: "0.8rem 1rem", textAlign: "center" }}>
-                  {likedSongIDs.includes(s.Song_ID) ?
-                    <button style={{ ...buttonStyle, background: accent3 }} onClick={() => unlikeSong(s.Song_ID)} aria-label={`Unlike ${s.Title}`}>💜</button> :
-                    <button style={buttonStyle} onClick={() => likeSong(s.Song_ID)} aria-label={`Like ${s.Title}`}>🤍</button>
-                  }
+                <td style={{ padding: "0.8rem 1rem", fontVariantNumeric: "tabular-nums" }}>
+                  {formatDuration(song.Duration)}
                 </td>
-                <td style={{ padding: "0.8rem 1rem", textAlign: "center" }}>
-                  {renderStars(s.Song_ID)}
+                <td style={{ padding: "0.8rem 1rem" }}>
+                  <button onClick={() => playSong({ ...song, ArtistsDisplay: artistListString(song.Song_ID) })} style={buttonStyle}>
+                    ▶ Play
+                  </button>
+                  {currentQueueId && (
+                    <button onClick={() => addToQueue(song, currentQueueId)} style={buttonStyle}>
+                      + Queue
+                    </button>
+                  )}
                 </td>
+                <td style={{ padding: "0.8rem 1rem" }}>
+                  <select
+                    value={selectedPlaylistForSong[song.Song_ID] || ""}
+                    onChange={(e) =>
+                      setSelectedPlaylistForSong((prev) => ({ ...prev, [song.Song_ID]: e.target.value }))
+                    }
+                    style={inputStyle}
+                  >
+                    <option value="">Select playlist</option>
+                    {[...myPlaylist, ...collabPlaylist].map((pl) => (
+                      <option key={pl.Playlist_ID} value={pl.Playlist_ID}>
+                        {pl.Name}
+                      </option>
+                    ))}
+                  </select>
+                  <button onClick={() => handleAddSongToPlaylist(song.Song_ID)} style={{ ...buttonStyle, marginLeft: 5 }}>
+                    Add
+                  </button>
+                </td>
+                <td style={{ padding: "0.8rem 1rem" }}>
+                  {likedSongIDs.includes(song.Song_ID) ? (
+                    <button onClick={() => unlikeSong(song.Song_ID)} style={{ ...buttonStyle, background: "#6cc570" }}>
+                      💜
+                    </button>
+                  ) : (
+                    <button onClick={() => likeSong(song.Song_ID)} style={buttonStyle}>
+                      🤍
+                    </button>
+                  )}
+                </td>
+                <td style={{ padding: "0.8rem 1rem" }}>{renderStars(song.Song_ID)}</td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
       )}
     </div>
   );
 }
+
 
 // --- Queue Page ---
 function QueuePage({
@@ -442,6 +544,14 @@ function QueuePage({
             {currentQueueId ? `Q${currentQueueId}` : "No Queue Selected"} {queues.find(q => q.Queue_ID === currentQueueId)?.Incognito ? "(Incognito)" : ""}
             {currentQueueId && <button style={{ ...activeButton, marginLeft: 18 }} onClick={() => window.scrollTo(0, 0)}>Active</button>}
           </h3>
+          {queueSongs.length > 0 && (
+            <button
+              style={{ ...buttonStyle, background: accent3, marginBottom: "1rem" }}
+              onClick={() => playQueue(currentQueueId, [...queueSongs])}
+            >
+            ▶ Play Queue
+            </button>
+          )}
           {queueSongs.length === 0 ? <div style={{ color: "#bbb" }}>No songs queued.</div> :
             <ul style={{ padding: 0 }}>
               {queueSongs.map((s, i) =>
@@ -474,11 +584,12 @@ function PlaylistsPage({
   setAllPlaylists, setMyPlaylists, setCollabPlaylists,
   playSong, users
 }) {
+  const [addSongId, setAddSongId] = React.useState("");
+  const [searchSongText, setSearchSongText] = React.useState("");
   const [selected, setSelected] = useState(null);
   const [songs, setSongs] = useState([]);
   const [compilers, setCompilers] = useState([]);
   const [addUserId, setAddUserId] = useState("");
-  const [addSongId, setAddSongId] = useState("");
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [newParentId, setNewParentId] = useState("");
   const [playlistType, setPlaylistType] = useState("all");
@@ -760,7 +871,7 @@ function PlaylistsPage({
                   )}
                 </ul>
 
-                {isOwner && (
+                {(isOwner || isCollaborator) && (
                   <>
                     <select
                       value={addUserId}
@@ -784,19 +895,37 @@ function PlaylistsPage({
 
                 {(isOwner || isCollaborator) && (
                   <>
+                    <input
+                      type="text"
+                      placeholder="Search songs to add..."
+                      value={searchSongText ?? ""}
+                      onChange={e => setSearchSongText(e.target.value)}
+                      style={{ ...inputStyle, maxWidth: 180, marginBottom: "0.5rem", display: "inline-block" }}
+                    />
                     <select
                       value={addSongId}
                       onChange={e => setAddSongId(e.target.value)}
-                      style={{ ...inputStyle, maxWidth: 250, marginBottom: "0.5rem" }}
+                      style={{ ...inputStyle, maxWidth: 220, marginLeft: 10, marginBottom: "0.5rem", display: "inline-block" }}
                       aria-label="Select Song to add to playlist"
                     >
-                      <option value="">Add Song</option>
-                      {availableSongs.filter(s => !songs.some(ps => ps.Song_ID === s.Song_ID)).map(s => 
-                        <option key={s.Song_ID} value={s.Song_ID}>{s.Title}</option>)}
+                      <option value="">Select song...</option>
+                      {availableSongs
+                        .filter(s =>
+                          !songs.some(ps => ps.Song_ID === s.Song_ID) &&
+                          (!searchSongText ||
+                          s.Title.toLowerCase().includes(searchSongText.toLowerCase()))
+                        )
+                        .map(s => (
+                          <option key={s.Song_ID} value={s.Song_ID}>
+                            {s.Title}
+                          </option>
+                        ))}
                     </select>
                     <button style={buttonStyle} onClick={addSong}>Add Song</button>
                   </>
                 )}
+
+
               </div>
 
               <ul style={{ maxHeight: "380px", overflowY: "auto", listStyle: "none", padding: 0 }}>
@@ -1444,6 +1573,35 @@ function App() {
   const isArtist = userData?.accountType === "Artist";
   const isAdmin = userData?.Role === "admin";
 
+  const playQueue = async (queueId, songs) => {
+  if (!songs || songs.length === 0) return;
+  let idx = 0;
+  const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
+
+  const playNext = async () => {
+    if (idx >= songs.length) {
+      setCurrentSong(null);
+      return;
+    }
+      const song = songs[idx];
+      setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
+      if (audioRef.current) {
+        audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
+        audioRef.current.play().catch(e => {});
+        audioRef.current.onended = async () => {
+          if (!incognito) {
+            await addToHistory(song.Song_ID);
+          }
+          await removeFromQueue(queueId, song.Song_ID);
+          idx++;
+          playNext();
+        };
+      }
+    };
+    playNext();
+  };
+
+
   return (
     <div style={{ background: bgColor, minHeight: "100vh", color: textColor }}>
       <Navbar userData={userData} setUserData={setUserData} setView={setView} />
@@ -1454,18 +1612,21 @@ function App() {
           <Dashboard userData={userData} />
         ) : view === "songs" && isUser ? (
           <SongsPage
-            userData={userData} 
-            queues={queues} 
-            currentQueueId={currentQueueId} 
+            userData={userData}
+            queues={queues}
+            currentQueueId={currentQueueId}
             setCurrentQueueId={setCurrentQueueId}
-            addToQueue={addToQueue} 
+            addToQueue={addToQueue}
             playSong={handlePlaySong}
-            likeSong={likeSong} 
-            unlikeSong={unlikeSong} 
-            likedSongIDs={likedSongIDs} 
-            rateSong={rateSong} 
+            likeSong={likeSong}
+            unlikeSong={unlikeSong}
+            likedSongIDs={likedSongIDs}
+            rateSong={rateSong}
             getRating={getRating}
+            myPlaylist={myPlaylists}
+            collabPlaylist={collabPlaylists}
           />
+
         ) : view === "queues" && isUser ? (
           <QueuePage
             userData={userData} 
@@ -1475,7 +1636,8 @@ function App() {
             queueSongs={queueSongs}
             fetchQueues={fetchQueues}
             fetchQueueSongs={fetchQueueSongs}
-            playSong={handlePlaySong} 
+            playSong={handlePlaySong}
+            playQueue={playQueue} 
             removeFromQueue={removeFromQueue} 
             sortQueue={sortQueue} 
             addQueueDB={addQueueDB} 
