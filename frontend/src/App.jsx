@@ -1423,44 +1423,47 @@ function App() {
   };
 
   // Handle when current song ends
-  const handleSongEnd = async () => {
-    if (!currentSong) return;
+const handleSongEnd = async () => {
+  if (!currentSong) return;
 
-    try {
-      // Add to history if queue is not incognito
-      const isIncognito = queues.find(q => q.Queue_ID === currentQueueId)?.Incognito;
-      if (!isIncognito) {
-        await addToHistory(currentSong.Song_ID);
-      }
+  try {
+    // Check if the current queue is incognito
+    const isIncognito = queues.find(q => q.Queue_ID === currentQueueId)?.Incognito;
 
-      // Remove from backend queue
-      await removeFromQueue(currentQueueId, currentSong.Song_ID);
-
-      // Update local queue songs state by removing the played song
-      setQueueSongs(prev => {
-        const newQueue = prev.filter(s => s.Song_ID !== currentSong.Song_ID);
-        // Play next song if exists
-        if (newQueue.length > 0) {
-          startPlayingSong(newQueue[0]);
-        } else {
-          setCurrentSong(null);
-        }
-        return newQueue;
-      });
-    } catch (error) {
-      console.error("Error handling song end:", error);
-      // On error, attempt to continue playing next song
-      setQueueSongs(prev => {
-        const newQueue = prev.filter(s => s.Song_ID !== currentSong.Song_ID);
-        if (newQueue.length > 0) {
-          startPlayingSong(newQueue[0]);
-        } else {
-          setCurrentSong(null);
-        }
-        return newQueue;
-      });
+    // Add to history only if not incognito
+    if (!isIncognito) {
+      await addToHistory(currentSong.Song_ID);
     }
-  };
+
+    // Remove from backend queue
+    await removeFromQueue(currentQueueId, currentSong.Song_ID);
+
+    // Update local queue by removing played song and play next if exists
+    setQueueSongs(prev => {
+      const newQueue = prev.filter(s => s.Song_ID !== currentSong.Song_ID);
+      if (newQueue.length > 0) {
+        startPlayingSong(newQueue[0]);
+      } else {
+        setCurrentSong(null);
+      }
+      return newQueue;
+    });
+  } catch (error) {
+    console.error("Error handling song end:", error);
+
+    // On error, continue playing next song if possible
+    setQueueSongs(prev => {
+      const newQueue = prev.filter(s => s.Song_ID !== currentSong.Song_ID);
+      if (newQueue.length > 0) {
+        startPlayingSong(newQueue[0]);
+      } else {
+        setCurrentSong(null);
+      }
+      return newQueue;
+    });
+  }
+};
+
 
   const playSongByIndex = (queueId) => {
     const songsArray = currentQueueSongsRef.current;
