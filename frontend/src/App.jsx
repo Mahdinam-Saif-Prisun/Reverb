@@ -537,33 +537,6 @@ function QueuePage({
     if (dir === "down" && idx < queueSongs.length - 1) toIdx = idx + 1;
     if (toIdx !== null) await sortQueue(currentQueueId, idx, toIdx);
   };
-  const playQueue = async (queueId, songs) => {
-    if (!songs || songs.length === 0) return;
-    let idx = 0;
-    const incognito = queues.find(q => q.Queue_ID === queueId)?.Incognito;
-
-    const playNext = async () => {
-      if (idx >= songs.length) {
-        setCurrentSong(null);
-        return;
-      }
-      const song = songs[idx];
-      setCurrentSong({ ...song, Url: song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3", ArtistsDisplay: song.ArtistsDisplay });
-      if (audioRef.current) {
-        audioRef.current.src = song.Url || "/songs/Yiruma-RiverFlowsInYou.mp3";
-        audioRef.current.play().catch(e => {});
-        audioRef.current.onended = async () => {
-          if (!incognito) {
-            await addToHistory(song.Song_ID); // Optional: log history unless incognito
-          }
-          await removeFromQueue(queueId, song.Song_ID); // Remove just-played song
-          idx++; // Move to next song
-          playNext();
-        };
-      }
-    };
-    playNext();
-  };
 
   return (
     <div style={cardStyle}>
