@@ -285,6 +285,7 @@ function SongsPage({
   const [query, setQuery] = React.useState("");
   const [collabArtists, setCollabArtists] = React.useState({});
   const [loading, setLoading] = React.useState(true);
+  const [ratings, setRatings] = React.useState({});
 
   // State for selected playlist per song for adding songs
   const [selectedPlaylistForSong, setSelectedPlaylistForSong] = React.useState({});
@@ -304,6 +305,25 @@ function SongsPage({
     };
     fetchSongs();
   }, []);
+
+  React.useEffect(() => {
+    if (!userData || !userData.User_ID) return;
+
+    async function fetchUserRatings() {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/rate/user/${userData.User_ID}`);
+        const ratingsMap = {};
+        for (const item of res.data) {
+          ratingsMap[item.Song_ID] = item.Rating;
+        }
+        setRatings(ratingsMap);
+      } catch (error) {
+        console.error('Error fetching user ratings:', error);
+      }
+    }
+
+    fetchUserRatings();
+  }, [userData]);  // Depend on userData to run after login
 
   React.useEffect(() => {
     if (songs.length > 0) {
@@ -350,7 +370,7 @@ function SongsPage({
   };
 
   const renderStars = (songID) => {
-    const val = getRating(songID) || 0;
+    const val = ratings[songID] ?? 0;
     return (
       <span style={{ marginLeft: 14 }}>
         {[1, 2, 3, 4, 5].map((star) => (
@@ -360,6 +380,7 @@ function SongsPage({
               fontSize: 20,
               color: star <= val ? "#ffa726" : "#666",
               cursor: "pointer",
+              userSelect: "none"
             }}
             onClick={() => rateSong(songID, star)}
             aria-label={`Rate ${star} stars`}
@@ -448,8 +469,6 @@ function SongsPage({
               <th style={{ padding: "0.75rem 1rem" }}>Actions</th>
               <th style={{ padding: "0.75rem 1rem" }}>Add to Playlist</th>
               <th style={{ padding: "0.75rem 1rem" }}>Likes</th>
-              <th style={{ padding: "0.75rem 1rem" }}>Rating</th>
-              <th style={{ padding: "0.75rem 1rem" }}>Avg Rating</th>
             </tr>
           </thead>
           <tbody>
@@ -501,10 +520,6 @@ function SongsPage({
                       🤍
                     </button>
                   )}
-                </td>
-                <td style={{ padding: "0.8rem 1rem" }}>{renderStars(song.Song_ID)}</td>
-                <td style={{ padding: "0.8rem 1rem" }}>
-                  <AverageRating songId={song.Song_ID} />
                 </td>
               </tr>
             ))}
@@ -1540,15 +1555,34 @@ const handleSongEnd = async () => {
 
   // Rating functions
   const rateSong = async (songId, rating) => {
+    if (!userData || !userData.User_ID) {
+      alert('Please log in to rate songs.');
+      return;
+    }
+
     try {
-      await axios.post(`${BACKEND_URL}/rate`, { 
-        User_ID: userData.User_ID, 
-        Song_ID: songId, 
-        Rating: rating 
-      });
-      setRatings(prev => ({ ...prev, [songId]: rating }));
-    } catch (err) {
-      console.error("Error rating song:", err);
+      if (rating === null) {
+        // DELETE request to remove rating with query parameters
+        await axios.delete(`${BACKEND_URL}/rate`, {
+          params: { User_ID: userData.User_ID, Song_ID: songId },
+        });
+        setRatings(prev => {
+          const copy = { ...prev };
+          delete copy[songId];
+          return copy;
+        });
+      } else {
+        // POST request to create or update rating with JSON body
+        await axios.post(`${BACKEND_URL}/rate`, {
+          User_ID: userData.User_ID,
+          Song_ID: songId,
+          Rating: rating,
+        });
+        setRatings(prev => ({ ...prev, [songId]: rating }));
+      }
+    } catch (error) {
+      alert('Failed to save rating, please try again.');
+      console.error('Rating error:', error);
     }
   };
 
