@@ -24,6 +24,20 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET all ratings by a specific user
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT Song_ID, Rating FROM Rate WHERE User_ID = ?",
+      [req.params.userId]
+    );
+    res.json(rows); // will be an array of {Song_ID, Rating}
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // GET rating by user & song
 router.get("/:userId/:songId", async (req, res) => {
   try {
@@ -76,7 +90,8 @@ router.post("/", async (req, res) => {
 // DELETE a rating
 router.delete("/", async (req, res) => {
   try {
-    const { User_ID, Song_ID } = req.body;
+    const { User_ID, Song_ID } = req.query;
+
     if (!User_ID || !Song_ID)
       return res.status(400).json({ error: "User_ID and Song_ID are required" });
 
