@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import AverageRating from "./components/AverageRating";
+
 
 // Backend endpoint
 const BACKEND_URL = "http://localhost:3000";
@@ -447,6 +449,7 @@ function SongsPage({
               <th style={{ padding: "0.75rem 1rem" }}>Add to Playlist</th>
               <th style={{ padding: "0.75rem 1rem" }}>Likes</th>
               <th style={{ padding: "0.75rem 1rem" }}>Rating</th>
+              <th style={{ padding: "0.75rem 1rem" }}>Avg Rating</th>
             </tr>
           </thead>
           <tbody>
@@ -500,6 +503,9 @@ function SongsPage({
                   )}
                 </td>
                 <td style={{ padding: "0.8rem 1rem" }}>{renderStars(song.Song_ID)}</td>
+                <td style={{ padding: "0.8rem 1rem" }}>
+                  <AverageRating songId={song.Song_ID} />
+                </td>
               </tr>
             ))}
           </tbody>
